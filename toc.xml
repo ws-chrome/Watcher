@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Xp0M0u" APIVersion="8" Name="Watcher" Description="Keep track on your abilities cooldowns and states" Version="0.1.0">
+    <!--     <Script Name="Libs/inspect.lua"/>
+    <Script Name="Libs/GeminiLogging.lua"/>
+ -->
+    <Script Name="Watcher.lua"/>
+    <Form Name="Watcher.xml"/>
+</Addon>
