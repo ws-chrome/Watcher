@@ -790,13 +790,14 @@ class ActionSetFilter extends BaseFilter
       -- (engineersStances[data.ability\GetId()])
       engineerStanceId = engineersStances[data.ability\GetId()]
       currentInnateAbility = GameLib.GetClassInnateAbilitySpells().tSpells[GameLib.GetCurrentClassInnateAbilityIndex() * 2]
-      if engineerStanceId ~= nil
-        -- log\info(engineerStanceId)
-        if currentInnateAbility\GetId() == engineerStanceId
-          return true
-      else
-        if currentInnateAbility\GetId() == data.ability\GetId()
-          return true
+      if currentInnateAbility ~= nil
+        if engineerStanceId ~= nil
+          -- log\info(engineerStanceId)
+          if currentInnateAbility\GetId() == engineerStanceId
+            return true
+        else
+          if currentInnateAbility\GetId() == data.ability\GetId()
+            return true
 
       for name, spellData in pairs(EngineerSpells)
         if Helpers.GetItemIndex(spellData.tiers, data.ability\GetId()) ~= nil

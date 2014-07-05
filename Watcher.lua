@@ -1789,13 +1789,15 @@ do
         }
         local engineerStanceId = engineersStances[data.ability:GetId()]
         local currentInnateAbility = GameLib.GetClassInnateAbilitySpells().tSpells[GameLib.GetCurrentClassInnateAbilityIndex() * 2]
-        if engineerStanceId ~= nil then
-          if currentInnateAbility:GetId() == engineerStanceId then
-            return true
-          end
-        else
-          if currentInnateAbility:GetId() == data.ability:GetId() then
-            return true
+        if currentInnateAbility ~= nil then
+          if engineerStanceId ~= nil then
+            if currentInnateAbility:GetId() == engineerStanceId then
+              return true
+            end
+          else
+            if currentInnateAbility:GetId() == data.ability:GetId() then
+              return true
+            end
           end
         end
         for name, spellData in pairs(EngineerSpells) do
