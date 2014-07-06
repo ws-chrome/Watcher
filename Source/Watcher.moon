@@ -19,6 +19,22 @@ ClassResourceIndex =
   [GameLib.CodeEnumClass.Medic]: 1
   [GameLib.CodeEnumClass.Esper]: 1
 
+ClassStancesAbilities = {
+  -- [spell id]: stance id
+  {
+    [47866]: 45000 -- Engineer's Eradicate
+    [47881]: 41504 -- Engineer's Provoce
+  }
+  {
+    [47022]: 44932-- Warrior's Juggernaut        
+    [46867]: 44926-- Warrior's Onslaught        
+  }
+  {
+    [46074]: 45058-- Stalker's Evasive        
+    [46073]: 45057-- Stalker's Lethal        
+    [38782]: 46059-- Stalker's Agile        
+  }
+}
 
 EngineerSpells = {
   [GameLib.GetSpell(70593)\GetName()]:
@@ -343,6 +359,13 @@ class Settings
 
 
 class SpellBook
+
+  @IsStance: (spell) ->
+    for i, group in ipairs(ClassStancesAbilities)
+      for spellId, stanceId in pairs(group)
+        return true if spell\GetId() == stanceId
+    return false    
+
   @GetAbilities: ->
     if @abilities == nil or #@abilities <= 0
       @abilities = AbilityBook.GetAbilitiesList() or {}
@@ -353,7 +376,7 @@ class SpellBook
       @innates = {}
       spells = GameLib.GetClassInnateAbilitySpells().tSpells or {}
       for i, spell in ipairs(spells)
-        if spell\GetId() ~= 45000 and spell\GetId() ~= 41504
+        if not SpellBook.IsStance(spell)
           table.insert(@innates, spell)
 
 
@@ -436,9 +459,14 @@ class SpellBook
   @GetCooldownTime: (ability, spell) ->
     return 0 if spell == nil
 
-    -- engineers hack
-    if spell\GetId() == 47866 or spell\GetId() == 47881
-      return math.max(GameLib.GetSpell(47866)\GetCooldownRemaining(), GameLib.GetSpell(47881)\GetCooldownRemaining())
+    -- stances hack
+    for i, stanceGroup in ipairs(ClassStancesAbilities)
+      if stanceGroup[spell\GetId()] ~= nil
+        -- this is stance
+        cdTime = 0
+        for spellId, stanceId in pairs(stanceGroup)
+          cdTime = math.max(cdTime, GameLib.GetSpell(spellId)\GetCooldownRemaining())
+        return cdTime 
 
     chargesInfo = spell\GetAbilityCharges()
     time = if chargesInfo and chargesInfo.nChargesMax > 0
@@ -783,21 +811,24 @@ class ActionSetFilter extends BaseFilter
       return false if Helpers.GetItemIndex(actionSetAbilities, data.ability.nId) == nil
 
     if @options\Get('in_action_set') and data.ability.GetId
-      engineersStances = {
-        [47866]: 45000 -- Eradicate
-        [47881]: 41504 -- Provoce
-      }
-      -- (engineersStances[data.ability\GetId()])
-      engineerStanceId = engineersStances[data.ability\GetId()]
-      currentInnateAbility = GameLib.GetClassInnateAbilitySpells().tSpells[GameLib.GetCurrentClassInnateAbilityIndex() * 2]
-      if currentInnateAbility ~= nil
-        if engineerStanceId ~= nil
-          -- log\info(engineerStanceId)
-          if currentInnateAbility\GetId() == engineerStanceId
-            return true
-        else
-          if currentInnateAbility\GetId() == data.ability\GetId()
-            return true
+      currentInnateAbility = GameLib.GetCurrentClassInnateAbilitySpell()
+      return true if currentInnateAbility ~= nil and currentInnateAbility\GetId() == data.ability\GetId()
+
+      -- if currentInnateAbility ~= nil
+      --   innateId = currentInnateAbility\GetId()
+      --   for i, stanceGroup in ipairs(ClassStancesAbilities)
+      --     stanceId = stanceGroup[innateId]
+      --     if stanceId ~= nil
+      --       -- this is stance ability
+
+
+      --   if engineerStanceId ~= nil
+      --     -- log\info(engineerStanceId)
+      --     if currentInnateAbility\GetId() == engineerStanceId
+      --       return true
+      --   else
+      --     if currentInnateAbility\GetId() == data.ability\GetId()
+      --       return true
 
       for name, spellData in pairs(EngineerSpells)
         if Helpers.GetItemIndex(spellData.tiers, data.ability\GetId()) ~= nil

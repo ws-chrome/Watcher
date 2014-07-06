@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Addon Author="Xp0M0u" APIVersion="8" Name="Watcher" Description="Keep track on your abilities cooldowns and states" Version="1.0.1">
+<Addon Author="Xp0M0u" APIVersion="8" Name="Watcher" Description="Keep track on your abilities cooldowns and states" Version="1.0.2">
     <Script Name="Watcher.lua"/>
     <Form Name="Watcher.xml"/>
 </Addon>

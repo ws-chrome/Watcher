@@ -23,6 +23,21 @@ local ClassResourceIndex = {
   [GameLib.CodeEnumClass.Medic] = 1,
   [GameLib.CodeEnumClass.Esper] = 1
 }
+local ClassStancesAbilities = {
+  {
+    [47866] = 45000,
+    [47881] = 41504
+  },
+  {
+    [47022] = 44932,
+    [46867] = 44926
+  },
+  {
+    [46074] = 45058,
+    [46073] = 45057,
+    [38782] = 46059
+  }
+}
 local EngineerSpells = {
   [GameLib.GetSpell(70593):GetName()] = {
     summonAbilityId = 27021,
@@ -966,6 +981,16 @@ do
   })
   _base_0.__class = _class_0
   local self = _class_0
+  self.IsStance = function(spell)
+    for i, group in ipairs(ClassStancesAbilities) do
+      for spellId, stanceId in pairs(group) do
+        if spell:GetId() == stanceId then
+          return true
+        end
+      end
+    end
+    return false
+  end
   self.GetAbilities = function()
     if self.abilities == nil or #self.abilities <= 0 then
       self.abilities = AbilityBook.GetAbilitiesList() or { }
@@ -977,7 +1002,7 @@ do
       self.innates = { }
       local spells = GameLib.GetClassInnateAbilitySpells().tSpells or { }
       for i, spell in ipairs(spells) do
-        if spell:GetId() ~= 45000 and spell:GetId() ~= 41504 then
+        if not SpellBook.IsStance(spell) then
           table.insert(self.innates, spell)
         end
       end
@@ -1092,8 +1117,14 @@ do
     if spell == nil then
       return 0
     end
-    if spell:GetId() == 47866 or spell:GetId() == 47881 then
-      return math.max(GameLib.GetSpell(47866):GetCooldownRemaining(), GameLib.GetSpell(47881):GetCooldownRemaining())
+    for i, stanceGroup in ipairs(ClassStancesAbilities) do
+      if stanceGroup[spell:GetId()] ~= nil then
+        local cdTime = 0
+        for spellId, stanceId in pairs(stanceGroup) do
+          cdTime = math.max(cdTime, GameLib.GetSpell(spellId):GetCooldownRemaining())
+        end
+        return cdTime
+      end
     end
     local chargesInfo = spell:GetAbilityCharges()
     local time
@@ -1783,22 +1814,9 @@ do
         end
       end
       if self.options:Get('in_action_set') and data.ability.GetId then
-        local engineersStances = {
-          [47866] = 45000,
-          [47881] = 41504
-        }
-        local engineerStanceId = engineersStances[data.ability:GetId()]
-        local currentInnateAbility = GameLib.GetClassInnateAbilitySpells().tSpells[GameLib.GetCurrentClassInnateAbilityIndex() * 2]
-        if currentInnateAbility ~= nil then
-          if engineerStanceId ~= nil then
-            if currentInnateAbility:GetId() == engineerStanceId then
-              return true
-            end
-          else
-            if currentInnateAbility:GetId() == data.ability:GetId() then
-              return true
-            end
-          end
+        local currentInnateAbility = GameLib.GetCurrentClassInnateAbilitySpell()
+        if currentInnateAbility ~= nil and currentInnateAbility:GetId() == data.ability:GetId() then
+          return true
         end
         for name, spellData in pairs(EngineerSpells) do
           if Helpers.GetItemIndex(spellData.tiers, data.ability:GetId()) ~= nil then
